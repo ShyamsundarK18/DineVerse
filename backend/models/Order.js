@@ -1,43 +1,36 @@
 import mongoose from "mongoose";
 
-const orderSchema = new mongoose.Schema(
-    {
-        user: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
-        },
-
-        restaurant: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Restaurant"
-        },
-
-        items: [
-            {
-                menuItem: {
-                    type: mongoose.Schema.Types.ObjectId,
-                    ref: "MenuItem"
-                },
-                quantity: Number,
-                price: Number
-            }
-        ],
-
-        totalAmount: Number,
-
-        status: {
-            type: String,
-            enum: [
-                "PLACED",
-                "ACCEPTED",
-                "PREPARING",
-                "IN_TRANSIT",
-                "DELIVERED"
-            ],
-            default: "PLACED"
+const orderSchema = new mongoose.Schema({
+    customer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    items: [
+        {
+            menuItem: { type: mongoose.Schema.Types.ObjectId, ref: 'MenuItem' },
+            name: String, price: Number, quantity: { type: Number, default: 1 }
         }
+    ],
+    restaurant: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant', required: true },
+    restaurantName: String,
+    subtotal: Number,
+    deliveryFee: Number,
+    tax: Number,
+    totalAmount: { type: Number, required: true },
+    status: {
+        type: String,
+        enum: ['PENDING', 'PLACED', 'ACCEPTED', 'PREPARING', 'COURIER_ASSIGNED', 'DELIVERING', 'DELIVERED', 'CANCELLED'],
+        default: 'PLACED'
     },
-    { timestamps: true }
-);
+    paymentStatus: { type: String, enum: ['PENDING', 'PAID', 'FAILED'], default: 'PENDING' },
+    deliveryAddress: { type: String, required: true },
+    // 👇 ADDED FOR LIVE TRACKING MAP SUPPORT
+    courier_lat: { type: Number, default: null },
+    courier_lng: { type: Number, default: null },
+    review: {
+        Text: { type: String, default: '' },
+        points: { type: Number, default: 0 },
+        submitted: { type: Boolean, default: false }
+    }
+}, { timestamps: true });
+orderSchema.index({ restaurant: 1, createdAt: -1 });
+orderSchema.index({ customer: 1, createdAt: -1 });
 
-export default mongoose.model("Order", orderSchema);
+export default mongoose.model('Order', orderSchema);
