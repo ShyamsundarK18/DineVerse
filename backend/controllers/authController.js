@@ -1,97 +1,111 @@
 import User from "../models/User.js";
-import bcrypt from "bcryptjs";
-import generateToken from "../utils/generateToken.js";
+import jwt from "jsonwebtoken";
 
-/* REGISTER */
-export const register = async (req, res) => {
-    try {
-        const { name, email, password, role } = req.body;
+const generateToken = (id) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is missing in .env");
+  }
 
-        const exists = await User.findOne({ email });
-        if (exists)
-            return res.status(400).json({ msg: "User already exists" });
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const user = await User.create({
-            name,
-            email,
-            password: hashedPassword,
-            role
-        });
-
-        const token = generateToken(user._id, user.role);
-
-        res.status(201).json({
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            }
-        });
-
-    } catch (err) {
-        res.status(500).json({ msg: err.message });
+  return jwt.sign(
+    { id },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_EXPIRE || "7d",
     }
+  );
 };
 
+const register = async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
 
-/* LOGIN */
-export const login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-
-        const user = await User
-            .findOne({ email })
-            .select("+password");
-
-        if (!user)
-            return res.status(400).json({ msg: "Invalid credentials" });
-
-        const match = await bcrypt.compare(password, user.password);
-
-        if (!match)
-            return res.status(400).json({ msg: "Invalid credentials" });
-
-        const token = generateToken(user._id, user.role);
-
-        res.json({
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            }
-        });
-
-    } catch (err) {
-        res.status(500).json({ msg: err.message });
-    }
-};
-
-
-/* GET PROFILE */
-export const getProfile = async (req, res) => {
-    res.json(req.user);
-};
-
-
-/* UPDATE PROFILE */
-export const updateProfile = async (req, res) => {
-
-    const user = await User.findById(req.user._id);
-
-    if (req.body.name) user.name = req.body.name;
-    if (req.body.email) user.email = req.body.email;
-
-    if (req.body.password) {
-        user.password = await bcrypt.hash(req.body.password, 10);
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        message: "Please fill all required fields",
+      });
     }
 
-    await user.save();
+    const userExists = await User.findOne({
+      email: email.toLowerCase(),
+    });
 
-    res.json(user);
+    if (userExists) {
+      return res.status(400).json({
+        message: "User already exists",
+      });
+    }
+
+    const user = await User.create({
+      name: name.trim(),
+      email: email.toLowerCase(),
+      password,
+      role,
+    });
+
+    const token = generateToken(user._id);
+
+    return res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token,
+    });
+  } catch (error) {
+    console.error("Register error:", error);
+    return res.status(500).json({
+      message: error.message || "Registration failed",
+    });
+  }
 };
+
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+    });
+
+    if (user && (await user.matchPassword(password))) {
+      return res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        token: generateToken(user._id),
+      });
+    }
+
+    return res.status(401).json({
+      message: "Invalid email or password",
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+const getProfile = async (req, res) => {
+  return res.json(req.user);
+};
+
+const updateProfile = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      req.body,
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    return res.json(user);
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+export { register, login, getProfile, updateProfile };
