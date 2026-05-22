@@ -1,26 +1,32 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const restaurantSchema = new mongoose.Schema({
-    name: String,
-    cuisine: String,
-    rating: { type: Number, default: 0 },
-    image: String,
-
-    location: {
-        type: {
-            type: String,
-            enum: ["Point"],
-            default: "Point"
-        },
-        coordinates: [Number]
-    },
-
     owner: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
+        ref: 'User',
+        required: true
+    },
+    name: { type: String, required: true, trim: true },
+    cuisine: [{ type: String }],
+    rating: { type: Number, default: 0, min: 0, max: 5 },
+    totalReviews: { type: Number, default: 0 },
+    isOpen: { type: Boolean, default: true },
+    address: { type: String, required: true },
+    image: { type: String, default: '' },
+    delivery_time: { type: Number, default: 30 },
+    delivery_fee: { type: Number, default: 0 },
+    price_range: { type: String, default: '$$' },
+    is_approved: {
+        type: Boolean,
+        default: null // null = Pending, true = Approved, false = Rejected
+    },
+    location: {
+        type: { type: String, enum: ['Point'], required: true, default: 'Point' },
+        coordinates: { type: [Number], required: true }
     }
-});
+}, { timestamps: true });
 
-restaurantSchema.index({ location: "2dsphere" });
+restaurantSchema.index({ location: '2dsphere' });
+restaurantSchema.index({ owner: 1 });
 
-export default mongoose.model("Restaurant", restaurantSchema);
+export default mongoose.model('Restaurant', restaurantSchema);
