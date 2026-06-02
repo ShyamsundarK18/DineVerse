@@ -1,4 +1,3 @@
-
 import { api } from "@/api/client";
 import { useState, useEffect } from "react";
 import {
@@ -810,7 +809,4 @@ export default function RestaurantDashboard() {
       </div>
     </div>
   );
-}
-export default function RestaurantDashboard() {
-  <div>RestaurantDashboard</div>;
 }
