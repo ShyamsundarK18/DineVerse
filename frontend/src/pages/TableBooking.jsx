@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Calendar,
@@ -566,4 +565,3 @@ export default function TableBooking() {
     </div>
   );
 }
-
