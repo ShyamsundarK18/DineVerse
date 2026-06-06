@@ -811,6 +811,4 @@ export default function RestaurantDashboard() {
     </div>
   );
 }
-export default function RestaurantDashboard() {
-  <div>RestaurantDashboard</div>;
-}
+
