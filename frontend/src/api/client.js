@@ -2,11 +2,13 @@ import axios from "axios";
 import { io } from "socket.io-client";
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.BASE_API_URL || "http://localhost:8080/api",
+  // baseURL: import.meta.env.BASE_API_URL || "http://localhost:8080/api",
+  baseURL: import.meta.env.MODE === "development" ? "http://localhost:8080/api" : "/api",
 });
 
 const getSocketUrl = () => {
-  const apiUrl = import.meta.env.BASE_API_URL || "http://localhost:8080/api";
+  // const apiUrl = import.meta.env.BASE_API_URL || "http://localhost:8080/api";
+  const apiUrl = import.meta.env.MODE === "development" ? "http://localhost:8080/api" : "/api",
   return apiUrl.endsWith("/api") ? apiUrl.slice(0, -4) : apiUrl;
 };
 

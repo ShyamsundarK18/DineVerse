@@ -3,7 +3,9 @@ dotenv.config();
 
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
 import http from 'http';
+
 import { Server } from 'socket.io';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
@@ -20,6 +22,7 @@ connectDB();
 
 const app = express();
 const server = http.createServer(app);
+const __dirname = path.resolve();
 
 const io = new Server(server, {
     cors: {
@@ -48,6 +51,17 @@ socketHandler(io);
 
 // Health check
 app.get('/', (req, res) => res.json({ message: 'DineOut API is running' }));
+
+if (process.env.NODE_ENV === "production") {
+    app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+    // Catch-all route for SPA
+    app.get(/.*/, (req, res) => {
+        res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+    });
+
+}
+
 
 
 const PORT = process.env.PORT || 8080;

@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Explicitly load .env from the backend directory
-dotenv.config({ path: 'F:/Integrated-Food-Delivery-and-Dine-Out-Hospitality-Platform-main/backend/.env' });
+dotenv.config({ path: 'F:/backend/.env' });
 
 async function check() {
   try {
