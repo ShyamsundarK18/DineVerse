@@ -8,7 +8,7 @@ export const apiClient = axios.create({
 
 const getSocketUrl = () => {
   // const apiUrl = import.meta.env.BASE_API_URL || "http://localhost:8080/api";
-  const apiUrl = import.meta.env.MODE === "development" ? "http://localhost:8080/api" : "/api",
+  const apiUrl = import.meta.env.MODE === "development" ? "http://localhost:8080/api" : "/api";
   return apiUrl.endsWith("/api") ? apiUrl.slice(0, -4) : apiUrl;
 };
 
